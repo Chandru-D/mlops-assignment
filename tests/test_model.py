@@ -11,4 +11,3 @@ def test_model():
     model = joblib.load(model_path)
     # Perform the test
     assert model.predict([[5]])[0] == 10
-    
