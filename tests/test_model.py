@@ -1,6 +1,7 @@
 import joblib
 import os
 
+
 def test_model():
     # Define the path to model.pkl relative to the tests folder
     model_path = os.path.join(os.path.dirname(__file__), '../model.pkl')
