@@ -3,3 +3,4 @@
 /.dvc
 data/winequality-red.csv
 /model
+/data_repo
