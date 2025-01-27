@@ -46,6 +46,10 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Ensure model directory exists
+        run: |
+          mkdir -p model  # Ensure the 'model' directory exists before saving the model
+          
       - name: Run Model Training
         run: |
           python src/model.py
