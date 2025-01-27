@@ -9,6 +9,7 @@ with open('model/model.pkl', 'rb') as f:
     model = joblib.load(f)
     print(type(model))
 
+
 @app.route('/predict', methods=['POST'])
 def predict():
     """
@@ -18,10 +19,11 @@ def predict():
     """
     data = request.get_json()
     features = data.get("features")
-    X = np.array(features)
-    X = X.reshape(-1, 11) 
-    prediction = model.predict(X)
+    x = np.array(features)
+    x = x.reshape(-1, 11)
+    prediction = model.predict(x)
     return {'prediction': prediction.tolist()}
+
 
 @app.route('/heartbeat', methods=['GET'])
 def heartbeat():
@@ -30,6 +32,7 @@ def heartbeat():
     """
     print("I am alive !!!!!!")
     return "I am alive !!!!!!"
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=80, debug=True)
