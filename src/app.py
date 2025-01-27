@@ -1,6 +1,7 @@
 # The data set used in this example is from http://archive.ics.uci.edu/ml/datasets/Wine+Quality
 # P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis.
-# Modeling wine preferences by data mining from physicochemical properties. In Decision Support Systems, Elsevier, 47(4):547-553, 2009.
+# Modeling wine preferences by data mining from physicochemical properties. 
+# In Decision Support Systems, Elsevier, 47(4):547-553, 2009.
 
 import warnings
 import sys
@@ -19,10 +20,17 @@ import mlflow.sklearn
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
-"""
-To evaluate metrics - RMSE, MAE, R2
-"""
 def eval_metrics(actual, pred):
+    """
+    To evaluate metrics - RMSE, MAE, R2
+        arguments: 
+            actual - actual value
+            pred - predicted value
+        returns:
+            metric_rmse - calculated value of mean square error
+            metric_mae - calculated value of mean absolute error
+            metric_r2 - calculated value of r2 score
+    """
     metric_rmse = np.sqrt(mean_squared_error(actual, pred))
     metric_mae = mean_absolute_error(actual, pred)
     metric_r2 = r2_score(actual, pred)
