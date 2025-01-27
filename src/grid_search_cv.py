@@ -18,6 +18,6 @@ param_grid = {
     'min_samples_split': [2, 5, 10]
 }
 model = RandomForestClassifier()
-grid_search = GridSearchCV(model, param_grid, scoring='accuracy', cv=5, verbose=1)
+grid_search = GridSearchCV(model, param_grid, scoring='accuracy', cv=5, verbose=2)
 grid_search.fit(X_train, y_train)
 print(grid_search.best_params_)

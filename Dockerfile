@@ -1,6 +1,6 @@
 FROM python:3.10
 
-WORKDIR /mlops-assignment
+WORKDIR /app
 
 COPY . /app
 
