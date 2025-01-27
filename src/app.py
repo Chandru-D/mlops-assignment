@@ -20,10 +20,11 @@ from sklearn.model_selection import train_test_split
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
+
 def eval_metrics(actual, pred):
     """
     To evaluate metrics - RMSE, MAE, R2
-        arguments: 
+        arguments:
             actual - actual value
             pred - predicted value
         returns:
@@ -42,9 +43,7 @@ if __name__ == "__main__":
     np.random.seed(40)
 
     # Read the wine-quality csv file from the URL
-    CSV_URL = (
-        "http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
-    )
+    CSV_URL = "http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
     data = pd.DataFrame([])
     try:
         data = pd.read_csv(CSV_URL, sep=";")
@@ -97,6 +96,8 @@ if __name__ == "__main__":
             # There are other ways to use the Model Registry, which depends on the use case,
             # please refer to the doc for more information:
             # https://mlflow.org/docs/latest/model-registry.html#api-workflow
-            mlflow.sklearn.log_model(lr, "model", registered_model_name="ElasticnetWineModel")
+            mlflow.sklearn.log_model(
+                lr, "model", registered_model_name="ElasticnetWineModel"
+            )
         else:
             mlflow.sklearn.log_model(lr, "model")
