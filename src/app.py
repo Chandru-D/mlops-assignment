@@ -1,103 +1,36 @@
-# The data set used in this example is from http://archive.ics.uci.edu/ml/datasets/Wine+Quality
-# P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis.
-# Modeling wine preferences by data mining from physicochemical properties.
-# In Decision Support Systems, Elsevier, 47(4):547-553, 2009.
+"""Flask application to predict features"""
+import joblib
 
-import logging
-import sys
-import warnings
-from urllib.error import HTTPError, URLError
-from urllib.parse import urlparse
-
-import mlflow
-import mlflow.sklearn
 import numpy as np
-import pandas as pd
-from sklearn.linear_model import ElasticNet
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
+from flask import Flask, request
 
-logging.basicConfig(level=logging.WARN)
-logger = logging.getLogger(__name__)
+app = Flask(__name__)
 
+with open('model/model.pkl', 'rb') as f:
+    model = joblib.load(f)
+    print(type(model))
 
-def eval_metrics(actual, pred):
-    """
-    To evaluate metrics - RMSE, MAE, R2
-        arguments:
-            actual - actual value
-            pred - predicted value
-        returns:
-            metric_rmse - calculated value of mean square error
-            metric_mae - calculated value of mean absolute error
-            metric_r2 - calculated value of r2 score
-    """
-    metric_rmse = np.sqrt(mean_squared_error(actual, pred))
-    metric_mae = mean_absolute_error(actual, pred)
-    metric_r2 = r2_score(actual, pred)
-    return metric_rmse, metric_mae, metric_r2
+@app.route('/predict', methods=['POST'])
+def predict():
+  """
+  To predict features
+  Request body sample- {"features": [[7.4, 0.7, 0, 1.9, 0.076, 11, 34, 0.9978, 3.51, 0.56, 9.4]]}
+  Response - list of predicted values
+  """
+  data = request.get_json()
+  features = data.get("features")
+  X = np.array(features)
+  X = X.reshape(-1, 11) 
+  prediction = model.predict(X)
+  return {'prediction': prediction.tolist()}
 
+@app.route('/heartbeat',methods=['GET'])
+def heartbeat():
+   """
+   Check status of application server
+   """
+   print("I am alive !!!!!!")
+   return "I am alive !!!!!!"
 
-if __name__ == "__main__":
-    warnings.filterwarnings("ignore")
-    np.random.seed(40)
-
-    # Read the wine-quality csv file from the URL
-    CSV_URL = "http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
-    data = pd.DataFrame([])
-    try:
-        data = pd.read_csv(CSV_URL, sep=";")
-    except HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")
-    except URLError as url_err:
-        print(f"URL error occurred: {url_err}")
-    except pd.errors.ParserError as parse_err:
-        print(f"Error parsing the CSV: {parse_err}")
-    except FileNotFoundError as fnf_err:
-        print(f"File not found: {fnf_err}")
-
-    # Split the data into training and test sets. (0.75, 0.25) split.
-    train, test = train_test_split(data)
-
-    # The predicted column is "quality" which is a scalar from [3, 9]
-    train_x = train.drop(["quality"], axis=1)
-    test_x = test.drop(["quality"], axis=1)
-    train_y = train[["quality"]]
-    test_y = test[["quality"]]
-
-    alpha = float(sys.argv[1]) if len(sys.argv) > 1 else 0.5
-    l1_ratio = float(sys.argv[2]) if len(sys.argv) > 2 else 0.5
-
-    with mlflow.start_run():
-        lr = ElasticNet(alpha=alpha, l1_ratio=l1_ratio, random_state=42)
-        lr.fit(train_x, train_y)
-
-        predicted_qualities = lr.predict(test_x)
-
-        (rmse, mae, r2) = eval_metrics(test_y, predicted_qualities)
-
-        print(f"Elasticnet model (alpha={alpha}, l1_ratio={l1_ratio}):")
-        print(f"  RMSE: {rmse}")
-        print(f"  MAE: {mae}")
-        print(f"  R2: {r2}")
-
-        mlflow.log_param("alpha", alpha)
-        mlflow.log_param("l1_ratio", l1_ratio)
-        mlflow.log_metric("rmse", rmse)
-        mlflow.log_metric("r2", r2)
-        mlflow.log_metric("mae", mae)
-
-        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
-
-        # Model registry does not work with file store
-        if tracking_url_type_store != "file":
-
-            # Register the model
-            # There are other ways to use the Model Registry, which depends on the use case,
-            # please refer to the doc for more information:
-            # https://mlflow.org/docs/latest/model-registry.html#api-workflow
-            mlflow.sklearn.log_model(
-                lr, "model", registered_model_name="ElasticnetWineModel"
-            )
-        else:
-            mlflow.sklearn.log_model(lr, "model")
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=80, debug=True)
