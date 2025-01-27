@@ -49,7 +49,7 @@ jobs:
       - name: Ensure model directory exists
         run: |
           mkdir -p model  # Ensure the 'model' directory exists before saving the model
-          
+
       - name: Run Model Training
         run: |
           python src/model.py
@@ -61,7 +61,7 @@ jobs:
           path: model/model.pkl
 
   test:
-    name: Test Code
+    name: Test Model
     runs-on: ubuntu-latest
     needs: [deploy]  # Ensure deploy job is complete before running tests
     steps:
