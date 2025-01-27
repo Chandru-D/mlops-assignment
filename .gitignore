@@ -1,2 +1,4 @@
 /mlruns/
 /mlartifacts/
+/.dvc
+data/winequality-red.csv

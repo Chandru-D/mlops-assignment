@@ -2,30 +2,31 @@
 # P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis.
 # Modeling wine preferences by data mining from physicochemical properties. In Decision Support Systems, Elsevier, 47(4):547-553, 2009.
 
-import os
 import warnings
 import sys
+from urllib.parse import urlparse
+from urllib.error import HTTPError, URLError
+import logging
 
 import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import ElasticNet
-from urllib.parse import urlparse
 import mlflow
 import mlflow.sklearn
-
-import logging
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
-
+"""
+To evaluate metrics - RMSE, MAE, R2
+"""
 def eval_metrics(actual, pred):
-    rmse = np.sqrt(mean_squared_error(actual, pred))
-    mae = mean_absolute_error(actual, pred)
-    r2 = r2_score(actual, pred)
-    return rmse, mae, r2
+    metric_rmse = np.sqrt(mean_squared_error(actual, pred))
+    metric_mae = mean_absolute_error(actual, pred)
+    metric_r2 = r2_score(actual, pred)
+    return metric_rmse, metric_mae, metric_r2
 
 
 if __name__ == "__main__":
@@ -33,16 +34,20 @@ if __name__ == "__main__":
     np.random.seed(40)
 
     # Read the wine-quality csv file from the URL
-    csv_url = (
+    CSV_URL = (
         "http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
     )
     data = pd.DataFrame([])
     try:
-        data = pd.read_csv(csv_url, sep=";")
-    except Exception as e:
-        logger.exception(
-            "Unable to download training & test CSV, check your internet connection. Error: %s", e
-        )
+        data = pd.read_csv(CSV_URL, sep=";")
+    except HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+    except URLError as url_err:
+        print(f"URL error occurred: {url_err}")
+    except pd.errors.ParserError as parse_err:
+        print(f"Error parsing the CSV: {parse_err}")
+    except FileNotFoundError as fnf_err:
+        print(f"File not found: {fnf_err}")
 
     # Split the data into training and test sets. (0.75, 0.25) split.
     train, test = train_test_split(data)
@@ -64,10 +69,10 @@ if __name__ == "__main__":
 
         (rmse, mae, r2) = eval_metrics(test_y, predicted_qualities)
 
-        print("Elasticnet model (alpha=%f, l1_ratio=%f):" % (alpha, l1_ratio))
-        print("  RMSE: %s" % rmse)
-        print("  MAE: %s" % mae)
-        print("  R2: %s" % r2)
+        print(f"Elasticnet model (alpha={alpha}, l1_ratio={l1_ratio}):")
+        print(f"  RMSE: {rmse}")
+        print(f"  MAE: {mae}")
+        print(f"  R2: {r2}")
 
         mlflow.log_param("alpha", alpha)
         mlflow.log_param("l1_ratio", l1_ratio)
